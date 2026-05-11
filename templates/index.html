@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thomas Stevens'ın Dünya Turu Haritası</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --parchment: #f5e6c8;
+      --parchment-dark: #e8d5a3;
+      --ink-brown: #3b200a;
+      --ink-light: #6b3d1a;
+      --gold: #c9973a;
+      --gold-light: #e8c07a;
+      --gold-dim: #a07830;
+      --red-accent: #8b2a1a;
+      --sea-blue: #2a6b9e;
+      --sea-blue-light: #5b9ec9;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background-color: #1a0f05;
+      font-family: 'EB Garamond', Georgia, serif;
+      color: var(--ink-brown);
+      overflow-x: hidden;
+    }
+
+    /* NAVBAR */
+    .navbar {
+      background: linear-gradient(180deg, rgba(12,4,1,0.98) 0%, rgba(25,10,2,0.96) 100%);
+      border-bottom: 1px solid var(--gold-dim);
+      padding: 10px 0;
+      position: sticky; top: 0; z-index: 1100;
+    }
+    .navbar-logo-wrap { width:58px;height:58px;border-radius:50%;overflow:hidden;border:2px solid var(--gold);box-shadow:0 0 10px rgba(201,151,58,0.4);flex-shrink:0; }
+    .navbar-logo-wrap img { width:100%;height:100%;object-fit:cover; }
+    .navbar-brand-title { font-family:'Cinzel Decorative',serif;font-size:1.05rem;color:var(--gold-light);line-height:1.2;letter-spacing:0.02em; }
+    .nav-btn { background:transparent;border:1px solid var(--gold-dim);color:var(--gold-light);border-radius:25px;padding:6px 16px;font-family:'Cinzel',serif;font-size:0.74rem;letter-spacing:0.04em;transition:all .3s;text-decoration:none;display:inline-block; }
+    .nav-btn:hover { background:var(--gold);color:var(--ink-brown);border-color:var(--gold); }
+    .lang-select { background:var(--gold);color:var(--ink-brown);border:none;border-radius:20px;padding:5px 12px;font-family:'Cinzel',serif;font-size:0.78rem;font-weight:700;cursor:pointer; }
+
+    /* HERO */
+    .hero-section {
+      background: #0a0401;
+      padding: 60px 20px 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-section::before {
+      content:'';position:absolute;inset:0;
+      background-image:url('/static/images/backgrnd.png');
+      background-size:cover;background-position:center;opacity:0.06;
+    }
+    .hero-ornament { color:var(--gold);font-size:1.2rem;letter-spacing:.5em;opacity:.5;margin-bottom:10px; }
+    .hero-title {
+      font-family:'Cinzel Decorative',serif;
+      font-size:clamp(1.7rem,5vw,3.6rem);
+      color:var(--gold-light);
+      text-shadow:0 0 40px rgba(201,151,58,.45),0 2px 4px rgba(0,0,0,.8);
+      line-height:1.3;margin-bottom:14px;position:relative;
+    }
+    .hero-subtitle { font-family:'Cinzel',serif;font-size:clamp(.8rem,2vw,1rem);color:var(--parchment-dark);letter-spacing:.15em;opacity:.75;margin-bottom:28px; }
+    .hero-divider { width:260px;margin:0 auto 28px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);position:relative; }
+    .hero-divider::before { content:'✦';position:absolute;left:50%;transform:translateX(-50%);top:-9px;color:var(--gold);font-size:1rem; }
+    .stats-bar { display:flex;justify-content:center;gap:36px;flex-wrap:wrap;border-top:1px solid rgba(201,151,58,.2);border-bottom:1px solid rgba(201,151,58,.2);padding:16px 0;background:rgba(201,151,58,.06); }
+    .stat-number { font-family:'Cinzel Decorative',serif;font-size:1.5rem;color:var(--gold);display:block;line-height:1; }
+    .stat-label { font-family:'Cinzel',serif;font-size:.62rem;color:var(--parchment-dark);letter-spacing:.1em;opacity:.7; }
+
+    /* MAP SECTION */
+    .map-section { background:#0e0602;padding:38px 20px 48px; }
+    .section-header { text-align:center;margin-bottom:24px; }
+    .section-label { font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.22em;color:var(--gold-dim);text-transform:uppercase;margin-bottom:7px; }
+    .section-title { font-family:'Cinzel Decorative',serif;font-size:clamp(1.15rem,3vw,1.9rem);color:var(--gold-light);text-shadow:0 0 20px rgba(201,151,58,.3); }
+    .section-title-dark { color:var(--ink-brown);text-shadow:none; }
+
+    .filter-bar { display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px; }
+    .filter-select { background:rgba(201,151,58,.12);color:var(--gold-light);border:1px solid var(--gold-dim);border-radius:25px;padding:7px 18px;font-family:'Cinzel',serif;font-size:.76rem;cursor:pointer;transition:all .3s; }
+    .filter-select:hover,.filter-select:focus { background:var(--gold);color:var(--ink-brown);outline:none; }
+    .filter-select option { background:#2a1505;color:var(--parchment); }
+
+    .legend-bar { display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin-bottom:16px; }
+    .legend-item { display:flex;align-items:center;gap:7px;font-family:'Cinzel',serif;font-size:.7rem;color:var(--parchment-dark);letter-spacing:.03em; }
+    .legend-line { width:30px;height:3px;border-radius:2px; }
+    .legend-line.solid { background:var(--gold); }
+    .legend-line.dashed { background:transparent;border-top:3px dashed var(--sea-blue-light); }
+    .legend-dot { width:11px;height:11px;border-radius:50%;border:2px solid; }
+
+    #map { height:67vh;min-height:400px;border-radius:12px;border:2px solid var(--gold-dim);box-shadow:0 0 28px rgba(201,151,58,.18);transition:all .4s; }
+
+    #detail-panel {
+      background:linear-gradient(160deg,#fdf5e0 0%,#f5e6c0 50%,#eddfc0 100%);
+      border-radius:12px;border:2px solid var(--gold);
+      box-shadow:-6px 0 28px rgba(0,0,0,.4);
+      padding:26px 22px;display:none;
+      height:67vh;min-height:400px;overflow-y:auto;position:relative;
+    }
+    #detail-panel::before { content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold-dim),var(--gold),var(--gold-dim)); }
+
+    .close-btn { position:absolute;top:12px;right:14px;width:28px;height:28px;background:var(--ink-brown);color:var(--gold-light);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;font-weight:700;transition:all .2s;border:1px solid var(--gold-dim); }
+    .close-btn:hover { background:var(--red-accent);transform:scale(1.1); }
+
+    .detail-title { font-family:'Cinzel Decorative',serif;font-size:1.35rem;color:var(--ink-brown);border-bottom:2px solid var(--gold);padding-bottom:10px;margin-bottom:14px;line-height:1.3; }
+    .detail-row { display:flex;gap:8px;align-items:flex-start;margin-bottom:9px;font-size:.9rem; }
+    .detail-label { font-family:'Cinzel',serif;font-size:.68rem;font-weight:700;color:var(--ink-light);text-transform:uppercase;letter-spacing:.07em;white-space:nowrap;min-width:86px;padding-top:2px; }
+    .detail-value { color:var(--ink-brown);line-height:1.5; }
+    .transport-badge { display:inline-flex;align-items:center;gap:5px;background:var(--ink-brown);color:var(--gold-light);border-radius:20px;padding:3px 11px;font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:.04em; }
+    .transport-badge.sea-type { background:var(--sea-blue); }
+    .ottoman-badge { display:inline-block;padding:3px 12px;border-radius:20px;font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:.04em;border:1px solid var(--gold-dim); }
+    .ottoman-yes { background:rgba(139,42,26,.1);color:var(--red-accent);border-color:var(--red-accent); }
+    .ottoman-no { background:rgba(59,32,10,.08);color:var(--ink-light); }
+    .detail-desc { font-style:italic;font-size:1.15rem;line-height:1.7;color:#4a2c10;border-top:1px dashed var(--gold-dim);padding-top:12px;margin-top:12px; }
+
+    .transition-all { transition:all .4s ease; }
+
+    /* ABOUT */
+    .about-section {
+      background:linear-gradient(180deg,var(--parchment) 0%,#eddbb5 100%);
+      padding:78px 20px;position:relative;
+    }
+    .about-section::before,.about-section::after { content:'';position:absolute;left:0;right:0;height:4px;background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+    .about-section::before { top:0; }
+    .about-section::after { bottom:0; }
+    .about-card { background:rgba(255,248,232,.7);border:1px solid var(--gold-dim);border-radius:12px;padding:34px;box-shadow:0 6px 28px rgba(0,0,0,.09);position:relative; }
+    .about-card::before { content:'"';font-family:'Cinzel Decorative',serif;font-size:7rem;color:var(--gold);opacity:.1;position:absolute;top:-8px;left:18px;line-height:1; }
+    .about-stats { display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:26px; }
+    .about-stat { background:var(--ink-brown);color:var(--parchment);border-radius:8px;padding:14px;text-align:center;border:1px solid var(--gold-dim); }
+    .about-stat-num { font-family:'Cinzel Decorative',serif;font-size:1.5rem;color:var(--gold);display:block; }
+    .about-stat-lbl { font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.07em;opacity:.8; }
+    .timeline { position:relative;padding-left:26px; }
+    .timeline::before { content:'';position:absolute;left:7px;top:5px;bottom:5px;width:2px;background:linear-gradient(180deg,var(--gold),var(--gold-dim)); }
+    .timeline-item { position:relative;margin-bottom:20px; }
+    .timeline-item::before { content:'';position:absolute;left:-23px;top:5px;width:9px;height:9px;border-radius:50%;background:var(--gold);border:2px solid var(--ink-brown); }
+    .timeline-year { font-family:'Cinzel',serif;font-size:.72rem;font-weight:700;color:var(--red-accent);letter-spacing:.07em; }
+    .timeline-text { font-size:.93rem;color:var(--ink-brown);line-height:1.5;margin-top:2px; }
+
+    /* TEAM */
+    .team-section { background:linear-gradient(180deg,#0f0703 0%,#1c0d04 100%);padding:78px 20px;position:relative; }
+    .team-section::before { content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+    .team-card { background:rgba(201,151,58,.04);border:1px solid rgba(201,151,58,.25);border-radius:12px;padding:30px 22px;text-align:center;transition:all .35s;position:relative;overflow:hidden; }
+    .team-card::before { content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent);transform:scaleX(0);transition:transform .35s; }
+    .team-card:hover { border-color:var(--gold);transform:translateY(-5px);box-shadow:0 12px 30px rgba(201,151,58,.14); }
+    .team-card:hover::before { transform:scaleX(1); }
+    .team-avatar { width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,var(--gold-dim) 0%,var(--ink-brown) 100%);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-family:'Cinzel Decorative',serif;font-size:1.75rem;color:var(--gold-light);border:2px solid var(--gold-dim);box-shadow:0 0 18px rgba(201,151,58,.18); }
+    .team-name { font-family:'Cinzel',serif;font-size:.98rem;color:var(--gold-light);margin-bottom:5px;letter-spacing:.03em; }
+    .team-role { font-family:'Cinzel',serif;font-size:.66rem;color:var(--gold-dim);letter-spacing:.11em;text-transform:uppercase;margin-bottom:11px;display:block; }
+    .team-desc { font-family:'EB Garamond',serif;font-size:.9rem;color:rgba(245,230,200,.6);line-height:1.6;font-style:italic; }
+
+    /* FOOTER */
+    footer { background:#060301;border-top:2px solid var(--gold-dim);padding:34px 20px;text-align:center; }
+    .footer-title { font-family:'Cinzel Decorative',serif;font-size:1rem;color:var(--gold);margin-bottom:8px; }
+    .footer-sub { font-family:'Cinzel',serif;font-size:.7rem;color:rgba(245,230,200,.4);letter-spacing:.1em; }
+    .footer-divider { width:110px;height:1px;background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);margin:14px auto; }
+
+    /* MODAL */
+    #infoModal { display:none;position:fixed;z-index:9999;inset:0;background:rgba(0,0,0,.85);align-items:center;justify-content:center;backdrop-filter:blur(4px); }
+    .modal-content-custom { background:linear-gradient(160deg,#fdf5e0 0%,#f0e0b0 100%);width:90%;max-width:840px;border-radius:14px;border:3px solid var(--gold);position:relative;padding:42px;box-shadow:0 0 60px rgba(0,0,0,.7);max-height:88vh;overflow-y:auto; }
+    .modal-close { position:absolute;right:16px;top:12px;font-size:26px;cursor:pointer;color:var(--ink-brown);font-weight:bold;width:34px;height:34px;background:rgba(59,32,10,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s; }
+    .modal-close:hover { background:var(--red-accent);color:#fff; }
+
+    /* Leaflet */
+    .leaflet-popup-content-wrapper { background:linear-gradient(160deg,#fdf5e0,#f0e0b0);border:2px solid var(--gold-dim);border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.4); }
+    .leaflet-popup-tip { background:#f0e0b0; }
+    .leaflet-popup-content { font-family:'Cinzel',serif;font-size:.8rem;color:var(--ink-brown); }
+
+    ::-webkit-scrollbar { width:5px; }
+    ::-webkit-scrollbar-track { background:rgba(201,151,58,.05); }
+    ::-webkit-scrollbar-thumb { background:var(--gold-dim);border-radius:3px; }
+
+    @media(max-width:768px) {
+      .hero-title { font-size:1.5rem; }
+      #map { height:52vh; }
+      #detail-panel { height:auto;min-height:280px; }
+      .about-stats { grid-template-columns:repeat(2,1fr); }
+      .modal-content-custom { padding:22px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-md">
+  <div class="container-fluid d-flex align-items-center px-4">
+    <a class="d-flex align-items-center gap-3 text-decoration-none" href="/">
+      <div class="navbar-logo-wrap"><img src="/static/images/Logo.png" alt="Logo"></div>
+      <span id="nav-title" class="navbar-brand-title">Thomas Stevens'ın Dünya Turu</span>
+    </a>
+    <div class="ms-auto d-flex align-items-center flex-wrap gap-2">
+      <button class="nav-btn" onclick="openInfoModal()"><i class="fas fa-compass me-1"></i><span data-tr="Seyahat Bilgisi" data-en="Journey Info">Seyahat Bilgisi</span></button>
+      <a class="nav-btn" href="/album"><i class="fas fa-book-open me-1"></i><span data-tr="Seyahat Albümü" data-en="Travel Album">Seyahat Albümü</span></a>
+      <a href="#about" class="nav-btn"><i class="fas fa-scroll me-1"></i><span data-tr="Hakkında" data-en="About">Hakkında</span></a>
+      <a href="#team" class="nav-btn"><i class="fas fa-users me-1"></i><span data-tr="Ekip" data-en="Team">Ekip</span></a>
+
+      <select id="languageSelect" class="lang-select"><option value="tr">🇹🇷 TR</option><option value="en">🇬🇧 EN</option></select>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero-section">
+  <div class="container position-relative">
+    <div class="hero-ornament">✦ ✦ ✦</div>
+    <h1 id="main-title" class="hero-title">Thomas Stevens'ın<br>Dünya Turu Haritası</h1>
+    <p id="hero-subtitle" class="hero-subtitle">1884 — 1886 &nbsp;·&nbsp; Bisikletle Dünya Turu</p>
+    <div class="hero-divider"></div>
+    <div class="stats-bar">
+      <div class="stat-item"><span class="stat-number">1884</span><span class="stat-label" data-tr="Başlangıç Yılı" data-en="Start Year">Başlangıç Yılı</span></div>
+      <div class="stat-item"><span class="stat-number">~22.000</span><span class="stat-label" data-tr="Kilometre" data-en="Kilometres">Kilometre</span></div>
+      <div class="stat-item"><span class="stat-number">261</span><span class="stat-label" data-tr="Durak" data-en="Stops">Durak</span></div>
+      <div class="stat-item"><span class="stat-number">2</span><span class="stat-label" data-tr="Kitap" data-en="Books">Kitap</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- MAP SECTION -->
+<section class="map-section">
+  <div class="container-fluid px-4">
+    <div class="section-header">
+      <div class="section-label" data-tr="İnteraktif Rota Haritası" data-en="Interactive Route Map">İnteraktif Rota Haritası</div>
+      <h2 class="section-title" data-tr="Rotayı Keşfedin" data-en="Explore the Route">Rotayı Keşfedin</h2>
+    </div>
+
+    <div class="filter-bar">
+      <select id="filterOttoman" class="filter-select">
+        <option value="all" data-tr="Tüm Rota" data-en="Full Route">Tüm Rota</option>
+        <option value="yes" data-tr="Osmanlı Toprakları" data-en="Ottoman Territories">Osmanlı Toprakları</option>
+        <option value="no" data-tr="Diğer Bölgeler" data-en="Other Regions">Diğer Bölgeler</option>
+      </select>
+      <select id="filterTransport" class="filter-select">
+        <option value="all" data-tr="Tüm Araçlar" data-en="All Transport">Tüm Araçlar</option>
+        <option value="sea" data-tr="Deniz Güzergahları" data-en="Sea Routes">Deniz Güzergahları</option>
+        <option value="land" data-tr="Kara Güzergahları" data-en="Land Routes">Kara Güzergahları</option>
+      </select>
+    </div>
+
+    <div class="legend-bar">
+      <!-- <div class="legend-item"><div class="legend-line solid"></div><span data-tr="Kara Rotası" data-en="Land Route">Kara Rotası</span></div> -->
+      <div class="legend-item"><div class="legend-dot" style="background:#2a6b9e;border-color:#c9973a;"></div><span data-tr="Deniz Ulaşımı (Gemi/Vapur/Yat/Feribot/Kayık)" data-en="Sea Transport (Ship/Ferry/Yacht/Boat)">Deniz Ulaşımı</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#3b200a;border-color:#c9973a;"></div><span data-tr="Osmanlı Toprağı" data-en="Ottoman Territory">Osmanlı Toprağı</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#8b2a1a;border-color:#c9973a;"></div><span data-tr="Diğer Bölge" data-en="Other Region">Diğer Bölge</span></div>
+    </div>
+
+    <div class="row g-3">
+      <div id="map-col" class="col-12 transition-all"><div id="map"></div></div>
+      <div id="detail-panel" class="col-md-4 transition-all">
+        <div class="close-btn" onclick="closePanel()">✕</div>
+        <div id="panel-content"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT SECTION -->
+<section id="about" class="about-section">
+  <div class="container">
+    <div class="section-header mb-5">
+      <div class="section-label" style="color:var(--gold-dim)" data-tr="Keşif & Macera" data-en="Discovery & Adventure">Keşif & Macera</div>
+      <h2 class="section-title section-title-dark" data-tr="Proje Hakkında" data-en="About the Project">Proje Hakkında</h2>
+      <div class="hero-divider" style="background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);"></div>
+    </div>
+    <div class="row g-4 align-items-start">
+      <div class="col-lg-7">
+        <div class="about-card">
+          <h3 style="font-family:'Cinzel Decorative',serif;font-size:1.3rem;color:var(--ink-brown);margin-bottom:18px;" data-tr="Thomas Stevens Kimdir?" data-en="Who is Thomas Stevens?">Thomas Stevens Kimdir?</h3>
+          <p id="about-text-main" style="font-size:1.06rem;line-height:1.8;color:#3b200a;position:relative;z-index:1;">
+            Thomas Stevens (1854–1935), 1884-1886 yılları arasında "penny-farthing" adıyla bilinen yüksek tekerlekli bisikletiyle dünyayı dolaşan ilk insan olarak tarihe geçmiştir. İngiliz asıllı Amerikalı olan Stevens, San Francisco'dan başladığı bu destansı yolculukta Amerika, Avrupa, Osmanlı İmparatorluğu, İran ve Hindistan'ı aşarak Yokohama'ya ulaşmıştır.
+          </p>
+          <p id="about-text-sub" style="font-size:1.03rem;line-height:1.8;color:#4a2c10;margin-top:12px;position:relative;z-index:1;">
+            Yolculuğunu Outing dergisi için makale serisi olarak kaleme alan Stevens, daha sonra bu yazıları üç ciltlik "Around the World on a Bicycle" adlı kitapta derlemiştir. Bu interaktif harita projesi, Stevens'ın izinden giderek o tarihi yolculuğu günümüz teknolojisiyle görselleştirmeyi amaçlamaktadır.
+          </p>
+          <div class="about-stats">
+            <div class="about-stat"><span class="about-stat-num">1884</span><span class="about-stat-lbl" data-tr="Yolculuk Başlangıcı" data-en="Journey Start">Yolculuk Başlangıcı</span></div>
+            <div class="about-stat"><span class="about-stat-num">1886</span><span class="about-stat-lbl" data-tr="Yolculuk Bitişi" data-en="Journey End">Yolculuk Bitişi</span></div>
+            <div class="about-stat"><span class="about-stat-num">20+</span><span class="about-stat-lbl" data-tr="Ülke" data-en="Countries">Ülke</span></div>
+            <div class="about-stat"><span class="about-stat-num">2</span><span class="about-stat-lbl" data-tr="Süre (Yıl)" data-en="Duration (Years)">Süre (Yıl)</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="about-card">
+          <h3 style="font-family:'Cinzel Decorative',serif;font-size:1.1rem;color:var(--ink-brown);margin-bottom:20px;" data-tr="Yolculuk Kronolojisi" data-en="Journey Timeline">Yolculuk Kronolojisi</h3>
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-year">Nisan 1884</div>
+              <p class="timeline-text" data-tr="San Francisco'dan bisiklet yolculuğuna başlar." data-en="Departs San Francisco on his bicycle journey.">San Francisco'dan bisiklet yolculuğuna başlar.</p>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-year">Ağustos 1884</div>
+              <p class="timeline-text" data-tr="New York'a ulaşır, Atlantik'i gemi ile geçer." data-en="Arrives New York, crosses the Atlantic by ship.">New York'a ulaşır, Atlantik'i gemi ile geçer.</p>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-year">1884–1885</div>
+              <p class="timeline-text" data-tr="İngiltere, Fransa, Almanya, Avusturya, Balkanlar ve Osmanlı İmparatorluğu'nu geçer." data-en="Crosses England, France, Germany, Austria, Balkans and the Ottoman Empire.">İngiltere, Fransa, Almanya, Avusturya, Balkanlar ve Osmanlı İmparatorluğu'nu geçer.</p>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-year">1885</div>
+              <p class="timeline-text" data-tr="İstanbul, Anadolu ve İran üzerinden Hindistan'a ulaşır." data-en="Passes through Istanbul, Anatolia and Iran to reach India.">İstanbul, Anadolu ve İran üzerinden Hindistan'a ulaşır.</p>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-year">Aralık 1886</div>
+              <p class="timeline-text" data-tr="Japonya'nın Yokohama limanında yolculuğunu tamamlar." data-en="Completes his journey at Yokohama port, Japan.">Japonya'nın Yokohama limanında yolculuğunu tamamlar.</p>
+            </div>
+          </div>
+        </div>
+        <div class="about-card mt-4">
+          <h3 style="font-family:'Cinzel Decorative',serif;font-size:1.05rem;color:var(--ink-brown);margin-bottom:14px;" data-tr="Bu Proje Hakkında" data-en="About This Project">Bu Proje Hakkında</h3>
+          <p id="project-text" style="font-size:.95rem;line-height:1.75;color:#3b200a;">
+            Bu dijital harita projesi akademik bir çalışmadır. Thomas Stevens'ın seyahat notları ve dönemin belgeleri kullanılarak rotası yeniden oluşturulmuş; her durak için tarihi bağlam, ulaşım araçları ve Osmanlı coğrafyasıyla ilişkisi belgelenmiştir.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM SECTION -->
+<section id="team" class="team-section">
+  <div class="container">
+    <div class="section-header mb-5">
+      <div class="section-label" data-tr="Bizimle Tanışın" data-en="Meet the Team">Bizimle Tanışın</div>
+      <h2 class="section-title" data-tr="Proje Ekibi" data-en="Project Team">Proje Ekibi</h2>
+      <div class="hero-divider"></div>
+    </div>
+    <div class="row g-4 justify-content-center">
+      <div class="col-md-6 col-lg-4">
+        <div class="team-card h-100">
+          <div class="team-avatar">R</div>
+          <div class="team-name">Rabia Öztürk</div>
+          <span class="team-role" data-tr="Proje Yürütücüsü" data-en="Project Leader">Proje Yürütücüsü</span>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="team-card h-100">
+          <div class="team-avatar" style="background:linear-gradient(135deg,#2a6b9e,#0d3050);">D</div>
+          <div class="team-name" data-tr="Dilara Şentürk" data-en="Dilara Şentürk">Dilara Şentürk</div>
+          <span class="team-role" data-tr="Araştırmacı (Full-Stack Geliştirme)" data-en="Researcher (Full-Stack Development)">Araştırmacı (Full-Stack Geliştirme)</span>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="team-card h-100">
+          <div class="team-avatar" style="background:linear-gradient(135deg,#5a2a0a,#8b2a1a);">M</div>
+          <div class="team-name" data-tr="Merve Yaren Subaşı" data-en="Merve Yaren Subaşı">Merve Yaren Subaşı</div>
+          <span class="team-role" data-tr="Araştırmacı (Full-Stack Geliştirme)" data-en="Researcher (Full-Stack Development)">Araştırmacı (Full-Stack Geliştirme)</span>
+  
+        </div>
+      </div>
+    </div>
+    <div class="text-center mt-5 pt-4" style="border-top:1px solid rgba(201,151,58,.18);">
+      <p style="font-family:'Cinzel',serif;font-size:.74rem;color:rgba(245,230,200,.4);letter-spacing:.09em;" data-tr="Bu proje, Thomas Stevens'ın 1884-1886 tarihli bisiklet yolculuğunu dijital ortamda belgelemek amacıyla hazırlanmıştır." data-en="This project was created to digitally document Thomas Stevens' 1884-1886 bicycle journey.">
+        Bu proje, Thomas Stevens'ın 1884-1886 tarihli bisiklet yolculuğunu dijital ortamda belgelemek amacıyla hazırlanmıştır.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-title">Thomas Stevens' World Tour</div>
+  <div class="footer-divider"></div>
+  <div class="footer-sub" data-tr="1884 – 1886 · Bisikletle İlk Dünya Turu · Dijital Arşiv Projesi" data-en="1884 – 1886 · First Bicycle World Tour · Digital Archive Project">
+    1884 – 1886 · Bisikletle İlk Dünya Turu · Dijital Arşiv Projesi
+  </div>
+</footer>
+
+<!-- INFO MODAL -->
+<div id="infoModal">
+  <div class="modal-content-custom">
+    <span class="modal-close" onclick="closeInfoModal()">✕</span>
+    <div class="row g-4 align-items-center">
+      <div class="col-md-5 text-center">
+        <img src="/static/images/Logo.png" alt="Cover" style="width:100%;max-width:250px;border-radius:10px;box-shadow:5px 5px 18px rgba(0,0,0,.3);border:2px solid var(--gold-dim);">
+      </div>
+      <div class="col-md-7">
+        <div style="font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.2em;color:var(--gold-dim);margin-bottom:7px;" data-tr="HAKKINDA" data-en="ABOUT">HAKKINDA</div>
+        <h2 id="modal-title" style="font-family:'Cinzel Decorative',serif;font-size:1.7rem;color:var(--ink-brown);margin-bottom:14px;border-bottom:2px solid var(--gold-dim);padding-bottom:10px;">Seyahat Hakkında</h2>
+        <div id="modal-text" style="font-family:'EB Garamond',serif;font-size:1.04rem;color:#3b200a;line-height:1.8;max-height:330px;overflow-y:auto;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const places = {{ places | tojson }};
+let currentLang = localStorage.getItem('stevens_lang') || 'tr';
+let markers = [];
+let polylines = [];
+
+const SEA_TYPES = ['gemi','vapur','yat','feribot','kayık','kayik','tekne','ferry','ship','boat','yacht'];
+function isSeaTransport(t) {
+  if (!t) return false;
+  const low = t.toLowerCase().trim();
+  return SEA_TYPES.some(s => low.includes(s));
+}
+
+const T = {
+  tr: {
+    pageTitle: "Thomas Stevens'ın Dünya Turu Haritası",
+    navTitle: "Thomas Stevens'ın Dünya Turu",
+    mainTitle: "Thomas Stevens'ın\nDünya Turu Haritası",
+    heroSub: "1884 — 1886 · Bisikletle Dünya Turu",
+    histName:"Tarih", modernName:"Modern Adı",
+    ottomanLabel:"Osmanlı Toprağı", transportLabel:"Ulaşım Aracı",
+    infoTitle:"Seyahat Hakkında", yes:"Evet", no:"Hayır",
+    infoBody:"Thomas Stevens, 1884-1886 yılları arasında yüksek tekerlekli (penny-farthing) bisikletiyle dünyayı dolaşan ilk insandır. San Francisco'dan başlayan bu destansı yolculukta Stevens; Amerika kıtasını geçerek Atlantik'i aştı, İngiltere ve Avrupa'yı gezdi, Osmanlı İmparatorluğu topraklarından geçti, İran ve Hindistan'ı kat etti ve Japonya'da yolculuğunu tamamladı. Toplam yaklaşık 21.000 km mesafe kat edildi. Deniz güzergahlarında kullandığı gemi, vapur, yat, feribot ve kayık rotaları haritada kesikli mavi çizgiyle gösterilmektedir.",
+    aboutMain:"Thomas Stevens (1854–1935), 1884-1886 yılları arasında \"penny-farthing\" adıyla bilinen yüksek tekerlekli bisikletiyle dünyayı dolaşan ilk insan olarak tarihe geçmiştir. İngiliz asıllı Amerikalı olan Stevens, San Francisco'dan başladığı bu destansı yolculukta Amerika, Avrupa, Osmanlı İmparatorluğu, İran ve Hindistan'ı aşarak Yokohama'ya ulaşmıştır.",
+    aboutSub:"Yolculuğunu Outing dergisi için makale serisi olarak kaleme alan Stevens, daha sonra bu yazıları üç ciltlik \"Around the World on a Bicycle\" adlı kitapta derlemiştir. Bu interaktif harita projesi, Stevens'ın izinden giderek o tarihi yolculuğu günümüz teknolojisiyle görselleştirmeyi amaçlamaktadır.",
+    projectTxt:"Bu dijital harita projesi akademik bir çalışmadır. Thomas Stevens'ın seyahat notları ve dönemin belgeleri kullanılarak rotası yeniden oluşturulmuş; her durak için tarihi bağlam, ulaşım araçları ve Osmanlı coğrafyasıyla ilişkisi belgelenmiştir."
+  },
+  en: {
+    pageTitle: "Thomas Stevens' World Tour Map",
+    navTitle:"Thomas Stevens' World Tour",
+    mainTitle:"Thomas Stevens'\nWorld Tour Map",
+    heroSub:"1884 — 1886 · Around the World by Bicycle",
+    histName:"Historic Name", modernName:"Modern Name",
+    ottomanLabel:"Ottoman Land", transportLabel:"Transport",
+    infoTitle:"About the Journey", yes:"Yes", no:"No",
+    infoBody:"Thomas Stevens was the first person to circumnavigate the globe by bicycle (penny-farthing) between 1884 and 1886. Starting from San Francisco, Stevens crossed the American continent, navigated the Atlantic, toured England and Europe, traversed the Ottoman Empire, crossed Persia and India, and completed his journey in Japan — covering approximately 21,000 km in total. Sea legs (ship, ferry, yacht, boat) are shown as dashed blue lines on the map.",
+    aboutMain:"Thomas Stevens (1854–1935) was the first person to circumnavigate the globe on a high-wheeled penny-farthing bicycle between 1884 and 1886. English-born American Stevens began his epic journey in San Francisco, crossing America, Europe, the Ottoman Empire, Persia and India to reach Yokohama, Japan.",
+    aboutSub:"Stevens serialized his journey for Outing magazine and later compiled the articles into the three-volume 'Around the World on a Bicycle'. This interactive map project aims to visualize that historic journey using modern technology, following in Stevens' own tracks.",
+    projectTxt:"This digital mapping project is an academic work. Using Stevens' travel notes and period documents, the route has been reconstructed with historical context, transport modes, and Ottoman geography documented for each stop."
+  }
+};
+
+// MAP
+const map = L.map('map',{zoomControl:true}).setView([41.0082,28.9784],3);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',subdomains:'abcd',maxZoom:19}).addTo(map);
+
+function drawLines(fp){
+  polylines.forEach(p=>map.removeLayer(p));
+  polylines=[];
+  if(fp.length<2)return;
+  for(let i=0;i<fp.length-1;i++){
+    const a=fp[i],b=fp[i+1];
+    const sea=isSeaTransport(a.transport_type)||isSeaTransport(b.transport_type);
+    const style=sea
+      ?{color:'#5b9ec9',weight:2.5,opacity:.9,dashArray:'10,7',lineJoin:'round'}
+      :{color:'#c9973a',weight:2,opacity:.6};
+    polylines.push(L.polyline([[a.latitude,a.longitude],[b.latitude,b.longitude]],style).addTo(map));
+  }
+}
+
+function tIcon(type){
+  if(!type)return'<i class="fas fa-bicycle"></i>';
+  const t=type.toLowerCase();
+  if(t.includes('gemi')||t.includes('ship'))return'<i class="fas fa-ship"></i>';
+  if(t.includes('vapur')||t.includes('feribot')||t.includes('ferry'))return'<i class="fas fa-ferry"></i>';
+  if(t.includes('yat')||t.includes('yacht'))return'<i class="fas fa-anchor"></i>';
+  if(t.includes('kayık')||t.includes('kayik')||t.includes('tekne')||t.includes('boat'))return'<i class="fas fa-water"></i>';
+  if(t.includes('tren')||t.includes('train'))return'<i class="fas fa-train"></i>';
+  if(t.includes('yaya')||t.includes('walk'))return'<i class="fas fa-person-walking"></i>';
+  return'<i class="fas fa-bicycle"></i>';
+}
+
+function mkIcon(isOttoman,isSea,size){
+  const ic=isOttoman?'#3b200a':'#8b2a1a';
+  const gl=isSea?'#5b9ec9':'#c9973a';
+  const w=size||26,h=size?size*1.46:38;
+  return L.divIcon({
+    className:'',
+    html:`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 24 36" style="filter:drop-shadow(0 2px 5px rgba(0,0,0,.5));"><path d="M12 0C7.3 0 3.5 3.8 3.5 8.5C3.5 15 12 28 12 28S20.5 15 20.5 8.5C20.5 3.8 16.7 0 12 0Z" fill="${ic}" stroke="${gl}" stroke-width="1.5"/><circle cx="12" cy="8.5" r="3.5" fill="${gl}" opacity=".9"/></svg>`,
+    iconSize:[w,h],iconAnchor:[w/2,h],popupAnchor:[0,-h]
+  });
+}
+
+function renderMarkers(){
+  markers.forEach(m=>map.removeLayer(m));
+  markers=[];
+  const fOtt=document.getElementById('filterOttoman').value;
+  const fTr=document.getElementById('filterTransport').value;
+  const fp=places.filter(p=>{
+    const ott=(p.is_in_ottoman===true||p.is_in_ottoman===1);
+    if(fOtt==='yes'&&!ott)return false;
+    if(fOtt==='no'&&ott)return false;
+    const sea=isSeaTransport(p.transport_type);
+    if(fTr==='sea'&&!sea)return false;
+    if(fTr==='land'&&sea)return false;
+    return true;
+  });
+  //drawLines(fp);
+  fp.forEach(place=>{
+    const ott=(place.is_in_ottoman===true||place.is_in_ottoman===1);
+    const sea=isSeaTransport(place.transport_type);
+    const m=L.marker([place.latitude,place.longitude],{icon:mkIcon(ott,sea)}).addTo(map);
+    m.bindTooltip(`<strong style="font-family:'Cinzel',serif;font-size:.76rem;">${place.name_modern}</strong>`,{permanent:false,direction:'top',offset:[0,-38]});
+    place.marker=m;
+    place._fp=fp;
+    m.on('click',()=>showDetails(place,fp));
+    markers.push(m);
+  });
+}
+
+function showDetails(place,fp){
+  const t=T[currentLang];
+  const ott=(place.is_in_ottoman===true||place.is_in_ottoman===1);
+  const sea=isSeaTransport(place.transport_type);
+  const desc=currentLang==='tr'?(place.description_tr||''):(place.description_en||'');
+
+  // reset markers
+  (fp||places).forEach(p=>{
+    if(p.marker){
+      const o=(p.is_in_ottoman===true||p.is_in_ottoman===1);
+      const s=isSeaTransport(p.transport_type);
+      p.marker.setIcon(mkIcon(o,s));
+      p.marker.setZIndexOffset(0);
+    }
+  });
+  if(place.marker){
+    const ic=ott?'#3b200a':'#8b2a1a';
+    const gl=sea?'#5b9ec9':'#c9973a';
+    place.marker.setIcon(L.divIcon({
+      className:'',
+      html:`<svg xmlns="http://www.w3.org/2000/svg" width="38" height="54" viewBox="0 0 24 36" style="filter:drop-shadow(0 3px 8px rgba(201,151,58,.7));"><path d="M12 0C7.3 0 3.5 3.8 3.5 8.5C3.5 15 12 28 12 28S20.5 15 20.5 8.5C20.5 3.8 16.7 0 12 0Z" fill="${ic}" stroke="#fff" stroke-width="2"/><circle cx="12" cy="8.5" r="4" fill="${gl}"/></svg>`,
+      iconSize:[38,54],iconAnchor:[19,54]
+    }));
+    place.marker.setZIndexOffset(1000);
+  }
+
+  document.getElementById('map-col').classList.replace('col-12','col-md-8');
+  document.getElementById('detail-panel').style.display='block';
+
+  const ottBadge=ott
+    ?`<span class="ottoman-badge ottoman-yes"><i class="fas fa-star-and-crescent me-1"></i>${t.yes}</span>`
+    :`<span class="ottoman-badge ottoman-no">${t.no}</span>`;
+
+  document.getElementById('panel-content').innerHTML=`
+    <h2 class="detail-title">${place.name_modern}</h2>
+    <div class="detail-row"><span class="detail-label">${t.histName}</span><span class="detail-value">${place.date||'-'}</span></div>
+    <div class="detail-row">
+      <span class="detail-label">${t.transportLabel}</span>
+      <span class="detail-value">
+        <span class="transport-badge${sea?' sea-type':''}">${tIcon(place.transport_type)} ${place.transport_type||'-'}${sea?' <i class="fas fa-water ms-1" style="opacity:.55;font-size:.68rem;"></i>':''}</span>
+      </span>
+    </div>
+    <div class="detail-row"><span class="detail-label">${t.ottomanLabel}</span><span class="detail-value">${ottBadge}</span></div>
+    ${desc?`<div class="detail-desc">${desc}</div>`:''}
+  `;
+  setTimeout(()=>map.invalidateSize(),420);
+}
+
+function closePanel(){
+  document.getElementById('map-col').classList.replace('col-md-8','col-12');
+  document.getElementById('detail-panel').style.display='none';
+  renderMarkers();
+  setTimeout(()=>map.invalidateSize(),420);
+}
+
+function openInfoModal(){
+  const t=T[currentLang];
+  document.getElementById('modal-title').innerText=t.infoTitle;
+  document.getElementById('modal-text').innerText=t.infoBody;
+  document.getElementById('infoModal').style.display='flex';
+}
+function closeInfoModal(){document.getElementById('infoModal').style.display='none';}
+document.getElementById('infoModal').addEventListener('click',function(e){if(e.target===this)closeInfoModal();});
+
+function updateLanguage(){
+  const t=T[currentLang];
+  // data-tr/en elements
+  document.querySelectorAll('[data-tr]').forEach(el=>{
+    el.innerText=currentLang==='tr'?el.dataset.tr:el.dataset.en;
+  });
+  document.getElementById('main-title').innerText=t.pageTitle;
+  document.getElementById('nav-title').innerText=t.navTitle;
+  document.getElementById('hero-subtitle').innerText=t.heroSub;
+  // Dynamic text blocks
+  document.getElementById('about-text-main').innerText=t.aboutMain;
+  document.getElementById('about-text-sub').innerText=t.aboutSub;
+  document.getElementById('project-text').innerText=t.projectTxt;
+  document.getElementById('languageSelect').value=currentLang;
+}
+
+document.getElementById('languageSelect').addEventListener('change',function(){
+  currentLang=this.value;
+  localStorage.setItem('stevens_lang',currentLang);
+  updateLanguage();renderMarkers();closePanel();
+});
+document.getElementById('filterOttoman').addEventListener('change',renderMarkers);
+document.getElementById('filterTransport').addEventListener('change',renderMarkers);
+
+updateLanguage();
+renderMarkers();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seyahat Albümü — Thomas Stevens</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --parchment: #f5e6c8;
+      --parchment-dark: #e8d5a3;
+      --ink-brown: #3b200a;
+      --ink-light: #6b3d1a;
+      --gold: #c9973a;
+      --gold-light: #e8c07a;
+      --gold-dim: #a07830;
+      --red-accent: #8b2a1a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: #0f0601;
+      background-image:
+        radial-gradient(ellipse at 15% 40%, rgba(70,30,5,0.35) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 70%, rgba(50,20,3,0.25) 0%, transparent 50%);
+      font-family: 'EB Garamond', Georgia, serif;
+      color: var(--ink-brown);
+      min-height: 100vh;
+    }
+
+    /* ── NAVBAR ── */
+    .navbar {
+      background: linear-gradient(180deg, rgba(10,3,0,0.98) 0%, rgba(22,8,1,0.96) 100%);
+      border-bottom: 1px solid var(--gold-dim);
+      padding: 10px 0;
+      position: sticky; top: 0; z-index: 1100;
+    }
+    .navbar-logo-wrap {
+      width: 56px; height: 56px; border-radius: 50%;
+      overflow: hidden; border: 2px solid var(--gold);
+      box-shadow: 0 0 10px rgba(201,151,58,0.4); flex-shrink: 0;
+    }
+    .navbar-logo-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .navbar-brand-title {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 1rem; color: var(--gold-light); line-height: 1.2;
+    }
+    .nav-btn {
+      background: transparent; border: 1px solid var(--gold-dim);
+      color: var(--gold-light); border-radius: 25px; padding: 6px 16px;
+      font-family: 'Cinzel', serif; font-size: 0.74rem; letter-spacing: 0.04em;
+      transition: all .3s; text-decoration: none; display: inline-block; cursor: pointer;
+    }
+    .nav-btn:hover { background: var(--gold); color: var(--ink-brown); border-color: var(--gold); }
+    .lang-select {
+      background: var(--gold); color: var(--ink-brown);
+      border: none; border-radius: 20px; padding: 5px 12px;
+      font-family: 'Cinzel', serif; font-size: 0.78rem; font-weight: 700; cursor: pointer;
+    }
+
+    /* ── HERO ── */
+    .hero-section {
+      background: #080301;
+      padding: 52px 20px 42px;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .hero-section::before {
+      content: ''; position: absolute; inset: 0;
+      background-image: url('/static/images/backgrnd.png');
+      background-size: cover; background-position: center; opacity: 0.06;
+    }
+    .hero-ornament { color: var(--gold); font-size: 1.1rem; letter-spacing: .5em; opacity: .5; margin-bottom: 10px; }
+    .hero-title {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(1.6rem, 4.5vw, 3.2rem);
+      color: var(--gold-light);
+      text-shadow: 0 0 40px rgba(201,151,58,.45), 0 2px 4px rgba(0,0,0,.8);
+      line-height: 1.3; margin-bottom: 12px; position: relative;
+    }
+    .hero-subtitle {
+      font-family: 'Cinzel', serif; font-size: clamp(.78rem, 1.8vw, .95rem);
+      color: var(--parchment-dark); letter-spacing: .15em; opacity: .7; margin-bottom: 26px;
+    }
+    .hero-divider {
+      width: 240px; margin: 0 auto 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      position: relative;
+    }
+    .hero-divider::before {
+      content: '✦'; position: absolute; left: 50%; transform: translateX(-50%);
+      top: -9px; color: var(--gold); font-size: .95rem;
+    }
+
+    /* ── TABS ── */
+    .tabs-section {
+      background: #0e0602;
+      padding: 36px 20px 0;
+    }
+    .tabs-header {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      border-bottom: 2px solid var(--gold-dim);
+      margin-bottom: 0;
+      position: relative;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: rgba(201,151,58,.5);
+      font-family: 'Cinzel', serif;
+      font-size: .85rem;
+      letter-spacing: .1em;
+      padding: 14px 36px;
+      cursor: pointer;
+      transition: all .3s;
+      position: relative;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+    }
+    .tab-btn i { margin-right: 8px; font-size: .8rem; }
+    .tab-btn:hover { color: var(--gold-light); }
+    .tab-btn.active {
+      color: var(--gold-light);
+      border-bottom-color: var(--gold);
+      background: rgba(201,151,58,.06);
+    }
+    .tab-btn.active::after {
+      content: '';
+      position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%);
+      width: 60%; height: 3px;
+      background: var(--gold);
+      box-shadow: 0 0 10px rgba(201,151,58,.5);
+    }
+
+    /* ── GALLERY ── */
+    .gallery-section {
+      background: linear-gradient(180deg, #0e0602 0%, #130804 100%);
+      padding: 32px 20px 60px;
+      min-height: 60vh;
+    }
+
+    /* Search/Filter bar */
+    .gallery-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 28px;
+      padding: 14px 20px;
+      background: rgba(201,151,58,.06);
+      border: 1px solid rgba(201,151,58,.18);
+      border-radius: 10px;
+    }
+    .gallery-count {
+      font-family: 'Cinzel', serif;
+      font-size: .75rem;
+      color: var(--gold-dim);
+      letter-spacing: .06em;
+    }
+    .gallery-count span {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 1rem;
+      color: var(--gold);
+    }
+    .view-btns { display: flex; gap: 8px; }
+    .view-btn {
+      width: 34px; height: 34px;
+      background: transparent;
+      border: 1px solid var(--gold-dim);
+      color: var(--gold-dim);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all .25s; font-size: .85rem;
+    }
+    .view-btn.active, .view-btn:hover {
+      background: var(--gold); color: var(--ink-brown); border-color: var(--gold);
+    }
+
+    /* Grid */
+    .gallery-grid { display: grid; gap: 16px; }
+    .gallery-grid.grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .gallery-grid.grid-4 { grid-template-columns: repeat(4, 1fr); }
+    .gallery-grid.grid-2 { grid-template-columns: repeat(2, 1fr); }
+
+    .gallery-item {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid rgba(201,151,58,.25);
+      cursor: pointer;
+      background: #1a0a02;
+      aspect-ratio: 4/3;
+      transition: all .35s ease;
+    }
+    .gallery-item:hover {
+      border-color: var(--gold);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(0,0,0,.5), 0 0 20px rgba(201,151,58,.15);
+    }
+    .gallery-item img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform .5s ease;
+      display: block;
+    }
+    .gallery-item:hover img { transform: scale(1.06); }
+
+    .gallery-item-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, transparent 50%, rgba(10,4,0,.85) 100%);
+      opacity: 0;
+      transition: opacity .35s ease;
+      display: flex; align-items: flex-end; justify-content: center;
+      padding-bottom: 14px;
+    }
+    .gallery-item:hover .gallery-item-overlay { opacity: 1; }
+    .overlay-icon {
+      width: 40px; height: 40px;
+      background: rgba(201,151,58,.9);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--ink-brown); font-size: 1rem;
+    }
+    .gallery-item-num {
+      position: absolute; top: 8px; left: 10px;
+      font-family: 'Cinzel', serif; font-size: .62rem;
+      color: rgba(201,151,58,.7); letter-spacing: .06em;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center; padding: 80px 20px;
+      color: rgba(245,230,200,.3);
+    }
+    .empty-state i { font-size: 3rem; margin-bottom: 16px; display: block; }
+    .empty-state p { font-family: 'Cinzel', serif; font-size: .85rem; letter-spacing: .1em; }
+
+    /* ── LIGHTBOX ── */
+    .lightbox-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,.94);
+      align-items: center; justify-content: center;
+      backdrop-filter: blur(8px);
+    }
+    .lightbox-overlay.open { display: flex; }
+
+    .lightbox-inner {
+      position: relative;
+      max-width: 90vw; max-height: 90vh;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .lightbox-img-wrap {
+      position: relative;
+      max-width: 85vw; max-height: 80vh;
+      border: 2px solid var(--gold-dim);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 60px rgba(0,0,0,.7);
+    }
+    .lightbox-img-wrap img {
+      max-width: 85vw; max-height: 78vh;
+      object-fit: contain; display: block;
+    }
+
+    .lightbox-caption {
+      margin-top: 14px;
+      font-family: 'Cinzel', serif;
+      font-size: .75rem; color: var(--gold-dim);
+      letter-spacing: .1em; text-align: center;
+    }
+
+    .lb-nav-btn {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 46px; height: 46px;
+      background: rgba(201,151,58,.15);
+      border: 1px solid var(--gold-dim);
+      border-radius: 50%;
+      color: var(--gold-light);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all .25s; font-size: 1.1rem;
+      z-index: 10;
+    }
+    .lb-nav-btn:hover { background: var(--gold); color: var(--ink-brown); }
+    .lb-prev { left: -60px; }
+    .lb-next { right: -60px; }
+
+    .lb-close {
+      position: absolute; top: -44px; right: 0;
+      width: 36px; height: 36px;
+      background: rgba(139,42,26,.8);
+      border: 1px solid rgba(201,151,58,.4);
+      border-radius: 50%;
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 1rem; font-weight: 700;
+      transition: all .2s;
+    }
+    .lb-close:hover { background: var(--red-accent); transform: scale(1.1); }
+
+    .lb-counter {
+      position: absolute; top: -44px; left: 0;
+      font-family: 'Cinzel', serif; font-size: .72rem;
+      color: var(--gold-dim); letter-spacing: .08em;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: #060301;
+      border-top: 2px solid var(--gold-dim);
+      padding: 30px 20px;
+      text-align: center;
+    }
+    .footer-title { font-family: 'Cinzel Decorative', serif; font-size: .95rem; color: var(--gold); margin-bottom: 7px; }
+    .footer-sub { font-family: 'Cinzel', serif; font-size: .68rem; color: rgba(245,230,200,.35); letter-spacing: .1em; }
+    .footer-divider { width: 100px; height: 1px; background: linear-gradient(90deg,transparent,var(--gold-dim),transparent); margin: 12px auto; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(201,151,58,.04); }
+    ::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 3px; }
+
+    /* Tab panels */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Responsive */
+    @media (max-width: 992px) { .gallery-grid.grid-4 { grid-template-columns: repeat(3,1fr); } }
+    @media (max-width: 768px) {
+      .gallery-grid.grid-3, .gallery-grid.grid-4 { grid-template-columns: repeat(2,1fr); }
+      .lb-prev { left: -46px; } .lb-next { right: -46px; }
+    }
+    @media (max-width: 480px) {
+      .gallery-grid.grid-3, .gallery-grid.grid-4, .gallery-grid.grid-2 { grid-template-columns: repeat(1,1fr); }
+      .lb-prev, .lb-next { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-md">
+  <div class="container-fluid d-flex align-items-center px-4">
+    <a class="d-flex align-items-center gap-3 text-decoration-none" href="/">
+      <div class="navbar-logo-wrap"><img src="/static/images/Logo.png" alt="Logo"></div>
+      <span class="navbar-brand-title">Thomas Stevens</span>
+    </a>
+    <div class="ms-auto d-flex align-items-center flex-wrap gap-2">
+      <a class="nav-btn" href="/"><i class="fas fa-map me-1"></i><span id="back-lbl">Haritaya Dön</span></a>
+      <a href="/#about" class="nav-btn"><i class="fas fa-scroll me-1"></i><span id="about-lbl">Hakkında</span></a>
+      <a href="/#team" class="nav-btn"><i class="fas fa-users me-1"></i><span id="team-lbl">Ekip</span></a>
+      <select id="langAlb" class="lang-select"><option value="tr">🇹🇷 TR</option><option value="en">🇬🇧 EN</option></select>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero-section">
+  <div class="container position-relative">
+    <div class="hero-ornament">✦ ✦ ✦</div>
+    <h1 id="alb-title" class="hero-title">Seyahat Albümü</h1>
+    <p id="alb-subtitle" class="hero-subtitle">1884 — 1886 &nbsp;·&nbsp; Bisikletle Dünya Turu · Tarihi Görseller</p>
+    <div class="hero-divider"></div>
+  </div>
+</section>
+
+<!-- TABS -->
+<section class="tabs-section">
+  <div class="container">
+    <div class="tabs-header">
+      <button class="tab-btn active" id="tab-btn-1" onclick="switchTab(1)">
+        <i class="fas fa-book-open"></i><span id="tab1-lbl">1. Kitap</span>
+      </button>
+      <button class="tab-btn" id="tab-btn-2" onclick="switchTab(2)">
+        <i class="fas fa-book"></i><span id="tab2-lbl">2. Kitap</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- GALLERY -->
+<section class="gallery-section">
+  <div class="container">
+
+    <!-- Tab 1 -->
+    <div class="tab-panel active" id="panel-1">
+      <div class="gallery-toolbar">
+        <div class="gallery-count">
+          <span id="count-1">{{ book1|length }}</span>
+          <span id="count-lbl-1" style="font-family:'Cinzel',serif;font-size:.75rem;color:var(--gold-dim);margin-left:4px;">görsel</span>
+        </div>
+        <div class="view-btns">
+          <button class="view-btn" onclick="setGrid(3)" title="3 sütun"><i class="fas fa-th-large"></i></button>
+          <button class="view-btn active" onclick="setGrid(4)" title="4 sütun"><i class="fas fa-th"></i></button>
+          <button class="view-btn" onclick="setGrid(2)" title="2 sütun"><i class="fas fa-th-list"></i></button>
+        </div>
+      </div>
+
+      {% if book1 %}
+      <div class="gallery-grid grid-4" id="grid-1">
+        {% for img in book1 %}
+        <div class="gallery-item" onclick="openLightbox({{ loop.index0 }}, 1)">
+          <span class="gallery-item-num">{{ loop.index }}</span>
+          <img src="{{ img }}" alt="Kitap 1 - Görsel {{ loop.index }}" loading="lazy">
+          <div class="gallery-item-overlay">
+            <div class="overlay-icon"><i class="fas fa-search-plus"></i></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <i class="fas fa-image"></i>
+        <p id="empty1-lbl">Henüz bu albümde görsel yok.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Tab 2 -->
+    <div class="tab-panel" id="panel-2">
+      <div class="gallery-toolbar">
+        <div class="gallery-count">
+          <span id="count-2">{{ book2|length }}</span>
+          <span id="count-lbl-2" style="font-family:'Cinzel',serif;font-size:.75rem;color:var(--gold-dim);margin-left:4px;">görsel</span>
+        </div>
+        <div class="view-btns">
+          <button class="view-btn" onclick="setGrid(3)" title="3 sütun"><i class="fas fa-th-large"></i></button>
+          <button class="view-btn active" onclick="setGrid(4)" title="4 sütun"><i class="fas fa-th"></i></button>
+          <button class="view-btn" onclick="setGrid(2)" title="2 sütun"><i class="fas fa-th-list"></i></button>
+        </div>
+      </div>
+
+      {% if book2 %}
+      <div class="gallery-grid grid-4" id="grid-2">
+        {% for img in book2 %}
+        <div class="gallery-item" onclick="openLightbox({{ loop.index0 }}, 2)">
+          <span class="gallery-item-num">{{ loop.index }}</span>
+          <img src="{{ img }}" alt="Kitap 2 - Görsel {{ loop.index }}" loading="lazy">
+          <div class="gallery-item-overlay">
+            <div class="overlay-icon"><i class="fas fa-search-plus"></i></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <i class="fas fa-image"></i>
+        <p id="empty2-lbl">Henüz bu albümde görsel yok.</p>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-title">Thomas Stevens' World Tour</div>
+  <div class="footer-divider"></div>
+  <div class="footer-sub" id="footer-sub">1884 – 1886 · Bisikletle İlk Dünya Turu · Dijital Arşiv Projesi</div>
+</footer>
+
+<!-- LIGHTBOX -->
+<div class="lightbox-overlay" id="lightbox" onclick="handleLBClick(event)">
+  <div class="lightbox-inner" id="lb-inner">
+    <div class="lb-counter" id="lb-counter">1 / 1</div>
+    <div class="lb-close" onclick="closeLightbox()">✕</div>
+    <div class="lightbox-img-wrap">
+      <button class="lb-nav-btn lb-prev" onclick="lbNav(-1)"><i class="fas fa-chevron-left"></i></button>
+      <img id="lb-img" src="" alt="">
+      <button class="lb-nav-btn lb-next" onclick="lbNav(1)"><i class="fas fa-chevron-right"></i></button>
+    </div>
+    <div class="lightbox-caption" id="lb-caption"></div>
+  </div>
+</div>
+
+<script>
+  /* ── DATA from Jinja ── */
+  const imagesBook1 = {{ book1 | tojson }};
+  const imagesBook2 = {{ book2 | tojson }};
+
+  let currentBook = 1;
+  let currentIdx = 0;
+  let currentGrid = 4;
+
+  /* ── TABS ── */
+  function switchTab(n) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-' + n).classList.add('active');
+    document.getElementById('tab-btn-' + n).classList.add('active');
+    currentBook = n;
+  }
+
+  /* ── VIEW GRID ── */
+  function setGrid(n) {
+    currentGrid = n;
+    ['grid-1','grid-2'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.className = 'gallery-grid grid-' + n; }
+    });
+    document.querySelectorAll('.view-btns .view-btn').forEach((btn, i) => {
+      btn.classList.toggle('active', [3,4,2][i] === n);
+    });
+  }
+
+  /* ── LIGHTBOX ── */
+  function openLightbox(idx, book) {
+    currentBook = book;
+    currentIdx = idx;
+    renderLB();
+    document.getElementById('lightbox').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function renderLB() {
+    const imgs = currentBook === 1 ? imagesBook1 : imagesBook2;
+    const t = getLang() === 'tr' ? 'Kitap' : 'Book';
+    document.getElementById('lb-img').src = imgs[currentIdx];
+    document.getElementById('lb-img').alt = `${t} ${currentBook} — ${currentIdx + 1}`;
+    document.getElementById('lb-counter').innerText = `${currentIdx + 1} / ${imgs.length}`;
+    document.getElementById('lb-caption').innerText = `${t} ${currentBook}  ·  ${currentIdx + 1} / ${imgs.length}`;
+  }
+
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function lbNav(dir) {
+    const imgs = currentBook === 1 ? imagesBook1 : imagesBook2;
+    currentIdx = (currentIdx + dir + imgs.length) % imgs.length;
+    renderLB();
+  }
+
+  function handleLBClick(e) {
+    if (e.target === document.getElementById('lightbox')) closeLightbox();
+  }
+
+  document.addEventListener('keydown', e => {
+    if (!document.getElementById('lightbox').classList.contains('open')) return;
+    if (e.key === 'ArrowRight') lbNav(1);
+    if (e.key === 'ArrowLeft')  lbNav(-1);
+    if (e.key === 'Escape')     closeLightbox();
+  });
+
+  /* Touch/swipe support */
+  let tsX = null;
+  document.getElementById('lightbox').addEventListener('touchstart', e => { tsX = e.touches[0].clientX; });
+  document.getElementById('lightbox').addEventListener('touchend', e => {
+    if (tsX === null) return;
+    const dx = e.changedTouches[0].clientX - tsX;
+    if (Math.abs(dx) > 50) lbNav(dx < 0 ? 1 : -1);
+    tsX = null;
+  });
+
+  /* ── LANGUAGE ── */
+  const T = {
+    tr: {
+      title: 'Seyahat Albümü',
+      subtitle: '1884 — 1886 · Bisikletle Dünya Turu · Tarihi Görseller',
+      tab1: '1. Kitap', tab2: '2. Kitap',
+      back: 'Haritaya Dön', about: 'Hakkında', team: 'Ekip',
+      count: 'görsel', empty: 'Henüz bu albümde görsel yok.',
+      footer: '1884 – 1886 · Bisikletle İlk Dünya Turu · Dijital Arşiv Projesi'
+    },
+    en: {
+      title: 'Travel Album',
+      subtitle: '1884 — 1886 · Around the World by Bicycle · Historical Images',
+      tab1: 'Book 1', tab2: 'Book 2',
+      back: 'Back to Map', about: 'About', team: 'Team',
+      count: 'images', empty: 'No images in this album yet.',
+      footer: '1884 – 1886 · First Bicycle World Tour · Digital Archive Project'
+    }
+  };
+
+  function getLang() { return localStorage.getItem('stevens_lang') || 'tr'; }
+
+  function applyLang(lang) {
+    const t = T[lang];
+    document.getElementById('alb-title').innerText   = t.title;
+    document.getElementById('alb-subtitle').innerText = t.subtitle;
+    document.getElementById('tab1-lbl').innerText    = t.tab1;
+    document.getElementById('tab2-lbl').innerText    = t.tab2;
+    document.getElementById('back-lbl').innerText    = t.back;
+    document.getElementById('about-lbl').innerText   = t.about;
+    document.getElementById('team-lbl').innerText    = t.team;
+    document.getElementById('footer-sub').innerText  = t.footer;
+    document.querySelectorAll('[id^="count-lbl-"]').forEach(el => el.innerText = t.count);
+    document.querySelectorAll('[id^="empty"]').forEach(el => el.innerText = t.empty);
+    document.getElementById('langAlb').value = lang;
+    if (document.getElementById('lightbox').classList.contains('open')) renderLB();
+  }
+
+  document.getElementById('langAlb').addEventListener('change', function() {
+    localStorage.setItem('stevens_lang', this.value);
+    applyLang(this.value);
+  });
+
+  applyLang(getLang());
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

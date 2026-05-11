@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+sqlalchemy
+databases
+aiosqlite
+jinja2
+python-dotenv
+aiofiles
+itsdangerous
+bcrypt
+pandas
+openpyxl
+deep_translator
+python-multipart
